@@ -23,7 +23,7 @@ import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.RemotingServer;
 import org.apache.dubbo.remoting.Transporter;
 
-public class NettyTransporter implements Transporter {
+public class NettyTransporter implements Transporter {//建立数据传输的方式
 
     public static final String NAME = "netty3";
 

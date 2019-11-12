@@ -397,7 +397,11 @@ public class DubboProtocol extends AbstractProtocol {
             throw new RpcException("Cannot instantiate the serialization optimizer class: " + className, e);
         }
     }
-
+    /*
+    * serviceType  引用的什么接口
+    * url 如何访问引用接口，他的url
+    *
+    * */
     @Override
     public <T> Invoker<T> protocolBindingRefer(Class<T> serviceType, URL url) throws RpcException {
         optimizeSerialization(url);
@@ -408,31 +412,31 @@ public class DubboProtocol extends AbstractProtocol {
 
         return invoker;
     }
-
+/*某一个服务下，获取客户端的数量*/
     private ExchangeClient[] getClients(URL url) {
         // whether to share connection
 
         boolean useShareConnect = false;
 
-        int connections = url.getParameter(CONNECTIONS_KEY, 0);
+        int connections = url.getParameter(CONNECTIONS_KEY, 0);//XML配置文件中连接的数量，一个客户端可以和服务端建立多少个TCP连接.
         List<ReferenceCountExchangeClient> shareClients = null;
-        // if not configured, connection is shared, otherwise, one connection for one service
+        // if not configured, connection is shared, otherwise, one connection for one service  如果没有设置，则默认值为0，表示链接是共享的。
         if (connections == 0) {
             useShareConnect = true;
 
             /**
              * The xml configuration should have a higher priority than properties.
              */
-            String shareConnectionsStr = url.getParameter(SHARE_CONNECTIONS_KEY, (String) null);
+            String shareConnectionsStr = url.getParameter(SHARE_CONNECTIONS_KEY, (String) null);//XML配置文件中 共享链接数量，
             connections = Integer.parseInt(StringUtils.isBlank(shareConnectionsStr) ? ConfigUtils.getProperty(SHARE_CONNECTIONS_KEY,
                     DEFAULT_SHARE_CONNECTIONS) : shareConnectionsStr);
             shareClients = getSharedClient(url, connections);
         }
 
-        ExchangeClient[] clients = new ExchangeClient[connections];
-        for (int i = 0; i < clients.length; i++) {
+        ExchangeClient[] clients = new ExchangeClient[connections];  //ExchangeClient  负责数据是如何交换的
+        for (int i = 0; i < clients.length; i++) {//循环创建多个连接
             if (useShareConnect) {
-                clients[i] = shareClients.get(i);
+                clients[i] = shareClients.get(i);//从共享的链接中取。
 
             } else {
                 clients[i] = initClient(url);
@@ -571,7 +575,7 @@ public class DubboProtocol extends AbstractProtocol {
      */
     private ExchangeClient initClient(URL url) {
 
-        // client type setting.
+        // client type setting.  SERVER_KEY&CLIENT_KEY：指定客户端的通信链接类型mina还是netty
         String str = url.getParameter(CLIENT_KEY, url.getParameter(SERVER_KEY, DEFAULT_REMOTING_CLIENT));
 
         url = url.addParameter(CODEC_KEY, DubboCodec.NAME);
@@ -587,8 +591,8 @@ public class DubboProtocol extends AbstractProtocol {
         ExchangeClient client;
         try {
             // connection should be lazy
-            if (url.getParameter(LAZY_CONNECT_KEY, false)) {
-                client = new LazyConnectExchangeClient(url, requestHandler);
+            if (url.getParameter(LAZY_CONNECT_KEY, false)) {//当前链接是延迟创建还是立即创建
+                client = new LazyConnectExchangeClient(url, requestHandler); //装饰者模式
 
             } else {
                 client = Exchangers.connect(url, requestHandler);
