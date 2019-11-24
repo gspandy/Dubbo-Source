@@ -46,7 +46,7 @@ import static org.apache.dubbo.rpc.cluster.Constants.FAIL_BACK_TASKS_KEY;
  *
  * <a href="http://en.wikipedia.org/wiki/Failback">Failback</a>
  */
-public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {
+public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {  //单例? 任何一个组件上的实例都是单例的
 
     private static final Logger logger = LoggerFactory.getLogger(FailbackClusterInvoker.class);
 
@@ -77,16 +77,16 @@ public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {
         if (failTimer == null) {
             synchronized (this) {
                 if (failTimer == null) {
-                    failTimer = new HashedWheelTimer(
-                            new NamedThreadFactory("failback-cluster-timer", true),
-                            1,
+                    failTimer = new HashedWheelTimer(//定时任务
+                            new NamedThreadFactory("failback-cluster-timer", true),//线程工厂
+                            1,//计时的单位,步进位数,每个周期轮询32秒
                             TimeUnit.SECONDS, 32, failbackTasks);
                 }
             }
         }
-        RetryTimerTask retryTimerTask = new RetryTimerTask(loadbalance, invocation, invokers, lastInvoker, retries, RETRY_FAILED_PERIOD);
+        RetryTimerTask retryTimerTask = new RetryTimerTask(loadbalance, invocation, invokers, lastInvoker, retries, RETRY_FAILED_PERIOD);//重试任务
         try {
-            failTimer.newTimeout(retryTimerTask, RETRY_FAILED_PERIOD, TimeUnit.SECONDS);
+            failTimer.newTimeout(retryTimerTask, RETRY_FAILED_PERIOD, TimeUnit.SECONDS);//定时任务加入,指定周期,每个失败的重试次数为5次
         } catch (Throwable e) {
             logger.error("Failback background works error,invocation->" + invocation + ", exception: " + e.getMessage());
         }
@@ -96,13 +96,13 @@ public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {
     protected Result doInvoke(Invocation invocation, List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
         Invoker<T> invoker = null;
         try {
-            checkInvokers(invokers, invocation);
+            checkInvokers(invokers, invocation); //检查是否可用的服务
             invoker = select(loadbalance, invocation, invokers, null);
             return invoker.invoke(invocation);
         } catch (Throwable e) {
             logger.error("Failback to invoke method " + invocation.getMethodName() + ", wait for retry in background. Ignored exception: "
                     + e.getMessage() + ", ", e);
-            addFailed(loadbalance, invocation, invokers, invoker);
+            addFailed(loadbalance, invocation, invokers, invoker);//
             return AsyncRpcResult.newDefaultAsyncResult(null, null, invocation); // ignore
         }
     }
@@ -139,20 +139,20 @@ public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {
         @Override
         public void run(Timeout timeout) {
             try {
-                Invoker<T> retryInvoker = select(loadbalance, invocation, invokers, Collections.singletonList(lastInvoker));
+                Invoker<T> retryInvoker = select(loadbalance, invocation, invokers, Collections.singletonList(lastInvoker));//Collections.singletonList(lastInvoker) 从invokers中排除已经调用的服务lastInvoker,invokers就都是新的可调用服务了
                 lastInvoker = retryInvoker;
-                retryInvoker.invoke(invocation);
+                retryInvoker.invoke(invocation);  //补偿机制
             } catch (Throwable e) {
                 logger.error("Failed retry to invoke method " + invocation.getMethodName() + ", waiting again.", e);
-                if ((++retryTimes) >= retries) {
+                if ((++retryTimes) >= retries) {//重试次数超出
                     logger.error("Failed retry times exceed threshold (" + retries + "), We have to abandon, invocation->" + invocation);
                 } else {
-                    rePut(timeout);
+                    rePut(timeout);//重新放入
                 }
             }
         }
 
-        private void rePut(Timeout timeout) {
+        private void rePut(Timeout timeout) { //卫语句
             if (timeout == null) {
                 return;
             }

@@ -165,7 +165,7 @@ public class BootstrapUtils {
         // check && override if necessary
         List<URL> registryList = new ArrayList<URL>();
         ApplicationConfig application = interfaceConfig.getApplication();
-        List<RegistryConfig> registries = interfaceConfig.getRegistries();
+        List<RegistryConfig> registries = interfaceConfig.getRegistries();//每个注册中心都有一个配置集合
         if (CollectionUtils.isNotEmpty(registries)) {
             for (RegistryConfig config : registries) {
                 String address = config.getAddress();
@@ -176,7 +176,7 @@ public class BootstrapUtils {
                     Map<String, String> map = new HashMap<String, String>();
                     AbstractConfig.appendParameters(map, application);
                     AbstractConfig.appendParameters(map, config);
-                    map.put(PATH_KEY, RegistryService.class.getName());
+                    map.put(PATH_KEY, RegistryService.class.getName());//path:定位资源接口，不是实现类。不是具体的某个业务的接口，而是具体某个注册中心的某个服务
                     AbstractInterfaceConfig.appendRuntimeParameters(map);
                     if (!map.containsKey(PROTOCOL_KEY)) {
                         map.put(PROTOCOL_KEY, DUBBO_PROTOCOL);
@@ -187,9 +187,9 @@ public class BootstrapUtils {
 
                         url = URLBuilder.from(url)
                                 .addParameter(REGISTRY_KEY, url.getProtocol())
-                                .setProtocol(extractRegistryType(url))
+                                .setProtocol(extractRegistryType(url))  //添加协议，添加url后缀参数
                                 .build();
-                        if ((provider && url.getParameter(REGISTER_KEY, true))
+                        if ((provider && url.getParameter(REGISTER_KEY, true))//如果是注册者
                                 || (!provider && url.getParameter(SUBSCRIBE_KEY, true))) {
                             registryList.add(url);
                         }

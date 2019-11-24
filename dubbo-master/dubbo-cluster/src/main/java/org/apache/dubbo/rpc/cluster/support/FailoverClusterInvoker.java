@@ -58,7 +58,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
         List<Invoker<T>> copyInvokers = invokers;
         checkInvokers(copyInvokers, invocation);
         String methodName = RpcUtils.getMethodName(invocation);
-        int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
+        int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;  //重试两次
         if (len <= 0) {
             len = 1;
         }
@@ -66,17 +66,17 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
         RpcException le = null; // last exception.
         List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.
         Set<String> providers = new HashSet<String>(len);
-        for (int i = 0; i < len; i++) {
+        for (int i = 0; i < len; i++) {  //循环导致系统响应时间加大.
             //Reselect before retry to avoid a change of candidate `invokers`.
             //NOTE: if `invokers` changed, then `invoked` also lose accuracy.
             if (i > 0) {
                 checkWhetherDestroyed();
-                copyInvokers = list(invocation);
+                copyInvokers = list(invocation);//剩余的服务集合
                 // check again
-                checkInvokers(copyInvokers, invocation);
+                checkInvokers(copyInvokers, invocation);//服务有可能挂掉了.需要再次检查,确保负载均衡是正常的.
             }
-            Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);
-            invoked.add(invoker);
+            Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);//负载均衡策略
+            invoked.add(invoker);//异常的服务需要踢掉
             RpcContext.getContext().setInvokers((List) invoked);
             try {
                 Result result = invoker.invoke(invocation);
@@ -93,7 +93,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 }
                 return result;
             } catch (RpcException e) {
-                if (e.isBiz()) { // biz exception.
+                if (e.isBiz()) { // biz exception.  业务异常
                     throw e;
                 }
                 le = e;

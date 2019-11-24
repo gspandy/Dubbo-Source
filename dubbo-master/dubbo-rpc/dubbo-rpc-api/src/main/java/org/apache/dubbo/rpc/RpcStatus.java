@@ -32,9 +32,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class RpcStatus {
 
-    private static final ConcurrentMap<String, RpcStatus> SERVICE_STATISTICS = new ConcurrentHashMap<String, RpcStatus>();
+    private static final ConcurrentMap<String, RpcStatus> SERVICE_STATISTICS = new ConcurrentHashMap<String, RpcStatus>(); //每个服务
 
-    private static final ConcurrentMap<String, ConcurrentMap<String, RpcStatus>> METHOD_STATISTICS = new ConcurrentHashMap<String, ConcurrentMap<String, RpcStatus>>();
+    private static final ConcurrentMap<String, ConcurrentMap<String, RpcStatus>> METHOD_STATISTICS = new ConcurrentHashMap<String, ConcurrentMap<String, RpcStatus>>();  //每个方法
     private final ConcurrentMap<String, Object> values = new ConcurrentHashMap<String, Object>();
     private final AtomicInteger active = new AtomicInteger();
     private final AtomicLong total = new AtomicLong();
@@ -112,10 +112,10 @@ public class RpcStatus {
         max = (max <= 0) ? Integer.MAX_VALUE : max;
         RpcStatus appStatus = getStatus(url);
         RpcStatus methodStatus = getStatus(url, methodName);
-        if (methodStatus.active.get() == Integer.MAX_VALUE) {
+        if (methodStatus.active.get() == Integer.MAX_VALUE) {  //如果大于最大数,直接false
             return false;
         }
-        if (methodStatus.active.incrementAndGet() > max) {
+        if (methodStatus.active.incrementAndGet() > max) {  //是否大于指定数量
             methodStatus.active.decrementAndGet();
             return false;
         } else {

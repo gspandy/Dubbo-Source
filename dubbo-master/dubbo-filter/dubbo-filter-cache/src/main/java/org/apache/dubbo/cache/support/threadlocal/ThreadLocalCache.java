@@ -51,7 +51,7 @@ public class ThreadLocalCache implements Cache {
      * @param url
      */
     public ThreadLocalCache(URL url) {
-        this.store = ThreadLocal.withInitial(HashMap::new);
+        this.store = ThreadLocal.withInitial(HashMap::new);//重写了，因为不需要并发，所以用hashamap，减少竞争
     }
 
     /**

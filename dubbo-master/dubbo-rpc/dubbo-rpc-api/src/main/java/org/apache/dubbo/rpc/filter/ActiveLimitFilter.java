@@ -51,8 +51,8 @@ public class ActiveLimitFilter implements Filter, Filter.Listener { //客户端�
         URL url = invoker.getUrl();
         String methodName = invocation.getMethodName();
         int max = invoker.getUrl().getMethodParameter(methodName, ACTIVES_KEY, 0);
-        final RpcStatus rpcStatus = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName());
-        if (!RpcStatus.beginCount(url, methodName, max)) {
+        final RpcStatus rpcStatus = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName());//每个方法都有统计对象
+        if (!RpcStatus.beginCount(url, methodName, max)) {//判断数量
             long timeout = invoker.getUrl().getMethodParameter(invocation.getMethodName(), TIMEOUT_KEY, 0);
             long start = System.currentTimeMillis();
             long remain = timeout;

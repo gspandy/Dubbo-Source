@@ -288,7 +288,7 @@ public class ExpiringMap<K, V> implements Map<K, V> {
                 }
                 long timeIdle = timeNow - o.getLastAccessTime();
                 if (timeIdle >= timeToLiveMillis) {
-                    delegateMap.remove(o.getKey());
+                    delegateMap.remove(o.getKey());  //超过时间周期，则删除
                 }
             }
         }

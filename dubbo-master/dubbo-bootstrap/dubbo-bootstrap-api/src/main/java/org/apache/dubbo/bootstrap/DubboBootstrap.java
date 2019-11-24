@@ -584,7 +584,7 @@ public class DubboBootstrap extends GenericEventListener {
      * Initialize
      */
     private void initialize() {
-        ApplicationModel.initApplication();
+        ApplicationModel.initApplication();//qos监控   服务质量控制
 
         startConfigCenter();
 
@@ -1286,7 +1286,7 @@ public class DubboBootstrap extends GenericEventListener {
         @SuppressWarnings({"unchecked", "rawtypes"})
         private static List<Exporter<?>> doExportUrls(ServiceConfig<?> sc) {
             ServiceRepository repository = ApplicationModel.getServiceRepository();
-            ServiceDescriptor serviceDescriptor = repository.registerService(sc.getInterfaceClass());
+            ServiceDescriptor serviceDescriptor = repository.registerService(sc.getInterfaceClass());//注册服务
             repository.registerProvider(
                     sc.getUniqueServiceName(),
                     sc.getRef(),
@@ -1297,11 +1297,11 @@ public class DubboBootstrap extends GenericEventListener {
 
             List<URL> registryURLs = BootstrapUtils.loadRegistries(sc, true);
 
-            List<Exporter<?>> exporters = new ArrayList<>();
+            List<Exporter<?>> exporters = new ArrayList<>();  //发布前的缓存
             for (ProtocolConfig protocolConfig : sc.getProtocols()) {
                 String pathKey = URL.buildKey(sc.getContextPath(protocolConfig)
-                        .map(p -> p + "/" + sc.getPath())
-                        .orElse(sc.getPath()), sc.getGroup(), sc.getVersion());
+                        .map(p -> p + "/" + sc.getPath())//遍历转化    "/"+服务接口
+                        .orElse(sc.getPath()), sc.getGroup(), sc.getVersion());//如果转化不成功
                 // TODO, uncomment this line once service key is unified
                 sc.getServiceMetadata().setServiceKey(pathKey);
                 exporters.addAll(doExportUrlsFor1Protocol(sc, protocolConfig, registryURLs));
@@ -1388,7 +1388,7 @@ public class DubboBootstrap extends GenericEventListener {
                 } // end of methods for
             }
 
-            if (ProtocolUtils.isGeneric(sc.getGeneric())) {
+            if (ProtocolUtils.isGeneric(sc.getGeneric())) {//泛化调用
                 map.put(GENERIC_KEY, sc.getGeneric());
                 map.put(METHODS_KEY, ANY_VALUE);
             } else {
@@ -1421,13 +1421,13 @@ public class DubboBootstrap extends GenericEventListener {
             URL url = new URL(name, host, port, sc.getContextPath(protocolConfig).map(p -> p + "/" + sc.getPath()).orElse(sc.getPath()), map);
 
             // You can customize Configurator to append extra parameters
-            if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+            if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)//配置工厂
                     .hasExtension(url.getProtocol())) {
-                url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+                url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)//更新组件
                         .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
             }
 
-            String scope = url.getParameter(SCOPE_KEY);
+            String scope = url.getParameter(SCOPE_KEY);//发布的范围
             // don't export when none is configured
             if (!SCOPE_NONE.equalsIgnoreCase(scope)) {
 
@@ -1494,7 +1494,7 @@ public class DubboBootstrap extends GenericEventListener {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         /**
-         * always export injvm
+         * always export injvm  本地暴露，本地之间的调用
          */
         private static void exportLocal(ServiceConfig<?> sc, List<Exporter<?>> exporters, URL url) {
             URL local = URLBuilder.from(url)

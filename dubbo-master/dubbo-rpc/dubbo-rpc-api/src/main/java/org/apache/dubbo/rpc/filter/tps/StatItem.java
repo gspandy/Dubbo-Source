@@ -26,13 +26,13 @@ class StatItem {
 
     private String name;
 
-    private long lastResetTime;
+    private long lastResetTime;   // 最后重置的时间   红色起始
 
-    private long interval;
+    private long interval;      //时间间隔  黑色
 
-    private LongAdder token;
+    private LongAdder token;    //时间范围内请求数
 
-    private int rate;
+    private int rate;       //桶的数量.
 
     StatItem(String name, int rate, long interval) {
         this.name = name;
@@ -43,10 +43,11 @@ class StatItem {
     }
 
     public boolean isAllowable() {
-        long now = System.currentTimeMillis();
-        if (now > lastResetTime + interval) {
-            token = buildLongAdder(rate);
-            lastResetTime = now;
+        long now = System.currentTimeMillis();  //获取当前时间
+        if (now > lastResetTime + interval) { //如果当前的时间大于最后重置时间+时间间隔 , 重置最后重置的时间戳,重置桶的数量
+            token = buildLongAdder(rate);//复位桶  旧版本中用的是atomic,现在改为更灵活的LongAdder.
+// LongAdder类与AtomicLong类的区别在于高并发时前者将对单一变量的CAS操作分散为对数组cells中多个元素的CAS操作，取值时进行求和；而在并发较低时仅对base变量进行CAS操作，与AtomicLong类原理相同。不得不说这种分布式的设计还是很巧妙的。
+            lastResetTime = now;//重置最后更新的时间
         }
 
         if (token.sum() < 0) {
