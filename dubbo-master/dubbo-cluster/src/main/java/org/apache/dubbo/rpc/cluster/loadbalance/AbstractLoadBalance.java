@@ -38,10 +38,11 @@ public abstract class AbstractLoadBalance implements LoadBalance {
     /**
      * Calculate the weight according to the uptime proportion of warmup time
      * the new weight will be within 1(inclusive) to weight(inclusive)
+     * 根据预热时间的正常运行时间比例计算重量，新重量将在1（含）到权重之间
      *
-     * @param uptime the uptime in milliseconds
-     * @param warmup the warmup time in milliseconds
-     * @param weight the weight of an invoker
+     * @param uptime the uptime in milliseconds   当前服务运行的时间
+     * @param warmup the warmup time in milliseconds   预热的时间
+     * @param weight the weight of an invoker    权重
      * @return weight which takes warmup into account
      */
     static int calculateWarmupWeight(int uptime, int warmup, int weight) {
@@ -67,8 +68,8 @@ public abstract class AbstractLoadBalance implements LoadBalance {
      * Get the weight of the invoker's invocation which takes warmup time into account
      * if the uptime is within the warmup time, the weight will be reduce proportionally
      *
-     * @param invoker    the invoker
-     * @param invocation the invocation of this invoker
+     * @param invoker    the invoker   被调用
+     * @param invocation the invocation of this invoker  调用者
      * @return weight
      */
     int getWeight(Invoker<?> invoker, Invocation invocation) {
@@ -82,13 +83,13 @@ public abstract class AbstractLoadBalance implements LoadBalance {
             if (weight > 0) {
                 long timestamp = invoker.getUrl().getParameter(TIMESTAMP_KEY, 0L);
                 if (timestamp > 0L) {
-                    long uptime = System.currentTimeMillis() - timestamp;
+                    long uptime = System.currentTimeMillis() - timestamp;  //自从服务启动到现在的时间
                     if (uptime < 0) {
                         return 1;
                     }
                     int warmup = invoker.getUrl().getParameter(WARMUP_KEY, DEFAULT_WARMUP);
                     if (uptime > 0 && uptime < warmup) {
-                        weight = calculateWarmupWeight((int)uptime, warmup, weight);
+                        weight = calculateWarmupWeight((int)uptime, warmup, weight);//根据预热计算权重
                     }
                 }
             }

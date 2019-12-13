@@ -39,9 +39,9 @@ public interface LoadBalance {
     /**
      * select one invoker in list.
      *
-     * @param invokers   invokers.
-     * @param url        refer url
-     * @param invocation invocation.
+     * @param invokers   invokers.   可用的服务集群
+     * @param url        refer url   参数信息
+     * @param invocation invocation.    需要调用的哪一个服务哪个方法
      * @return selected invoker.
      */
     @Adaptive("loadbalance")
