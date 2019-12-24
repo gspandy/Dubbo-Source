@@ -43,9 +43,9 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
         // The least active value of all invokers
         int leastActive = -1;
         // The number of invokers having the same least active value (leastActive)
-        int leastCount = 0;
+        int leastCount = 0;  //具有相同连接数的服务数量
         // The index of invokers having the same least active value (leastActive)
-        int[] leastIndexes = new int[length];
+        int[] leastIndexes = new int[length];  //具有相同连接数的服务数量
         // the weight of every invokers
         int[] weights = new int[length];
         // The sum of the warmup weights of all the least active invokers
@@ -80,7 +80,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
                 // Each invoke has the same weight (only one invoker here)
                 sameWeight = true;
                 // If current invoker's active value equals with leaseActive, then accumulating.
-            } else if (active == leastActive) {
+            } else if (active == leastActive) { //如果最小连接数相等,则看权重的维度
                 // Record the index of the least active invoker in leastIndexes order
                 leastIndexes[leastCount++] = i;
                 // Accumulate the total weight of the least active invoker

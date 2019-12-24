@@ -57,7 +57,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         String key = invokers.get(0).getUrl().getServiceKey() + "." + methodName;
         int identityHashCode = System.identityHashCode(invokers);
         ConsistentHashSelector<T> selector = (ConsistentHashSelector<T>) selectors.get(key);
-        if (selector == null || selector.identityHashCode != identityHashCode) {
+        if (selector == null || selector.identityHashCode != identityHashCode) {//hash值变化后，重新设置
             selectors.put(key, new ConsistentHashSelector<T>(invokers, methodName, identityHashCode));
             selector = (ConsistentHashSelector<T>) selectors.get(key);
         }
@@ -66,7 +66,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
     private static final class ConsistentHashSelector<T> {
 
-        private final TreeMap<Long, Invoker<T>> virtualInvokers;
+        private final TreeMap<Long, Invoker<T>> virtualInvokers;  //虚拟节点，避免hash加入和减少的缓存命中过低
 
         private final int replicaNumber;
 

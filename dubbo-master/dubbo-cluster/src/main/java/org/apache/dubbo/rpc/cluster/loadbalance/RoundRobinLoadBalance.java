@@ -50,7 +50,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         public long increaseCurrent() {
             return current.addAndGet(weight);
         }
-        public void sel(int total) {
+        public void sel(int total) {//权重设置为负数,为最小
             current.addAndGet(-1 * total);
         }
         public long getLastUpdate() {
@@ -95,7 +95,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         long now = System.currentTimeMillis();
         Invoker<T> selectedInvoker = null;
         WeightedRoundRobin selectedWRR = null;
-        for (Invoker<T> invoker : invokers) {
+        for (Invoker<T> invoker : invokers) {  //计算权重
             String identifyString = invoker.getUrl().toIdentityString();
             WeightedRoundRobin weightedRoundRobin = map.get(identifyString);
             int weight = getWeight(invoker, invocation);
@@ -118,7 +118,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
             }
             totalWeight += weight;
         }
-        if (!updateLock.get() && invokers.size() != map.size()) {
+        if (!updateLock.get() && invokers.size() != map.size()) {//更新缓存
             if (updateLock.compareAndSet(false, true)) {
                 try {
                     // copy -> modify -> update reference
